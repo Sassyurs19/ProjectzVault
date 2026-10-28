@@ -50,7 +50,7 @@ Reference passwords use AES-256-GCM with a fresh 128-bit salt, a fresh 96-bit IV
 - A public pending transaction hash is stored locally per UID/account, so a confirmed transaction can be recovered without resending after a network/storage error.
 - Receipt must succeed and match the wallet, contract, calldata, and zero value. Save the UTC date derived from its block timestamp after two confirmations. Firestore transaction de-duplicates check-ins.
 - The interface locks the check-in button while a request is preparing or awaiting a wallet. A second browser or phone can still independently prompt a signature; the 4D Labs contract and its fresh pre-send simulation remain the final protection against a duplicate on-chain check-in.
-- Leaving an account disconnects the wallet. UTC reset is 5:30 AM IST.
+- The wallet remains connected while navigating between accounts. A check-in stays disabled whenever the active wallet does not match the selected account; switch the active address in your wallet, then continue. Disconnect remains an explicit user action. UTC reset is 5:30 AM IST.
 
 ## 4D Labs points and linked wallets
 
