@@ -25,7 +25,6 @@ export async function backendCall(payload) {
 export const walletConfig = createConfig({chains:[bsc], multiInjectedProviderDiscovery:true, connectors:[
   injected({target:{id:'metaMask',name:'MetaMask',provider: w => w?.ethereum?.providers?.find(p => p.isMetaMask) || (w?.ethereum?.isMetaMask ? w.ethereum : undefined)},shimDisconnect:true}),
   injected({target:{id:'binance',name:'Binance Wallet',provider:w => w?.binancew3w?.ethereum || w?.BinanceChain || (w?.ethereum?.isBinance ? w.ethereum : undefined)},shimDisconnect:true}),
-  injected({shimDisconnect:true}),
   ...(walletConnectProjectId ? [walletConnect({projectId:walletConnectProjectId,metadata:{name:'Project Vault',description:'Personal 4D Labs check-ins',url:window.location.origin,icons:[]},showQrModal:true})] : [])
 ],transports:{[bsc.id]:http(bnbRpcUrl)}});
 
