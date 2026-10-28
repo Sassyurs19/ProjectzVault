@@ -1,0 +1,14 @@
+import {readFileSync} from 'node:fs';
+import {before,after,test} from 'node:test';
+import {initializeTestEnvironment,assertSucceeds,assertFails} from '@firebase/rules-unit-testing';
+import {doc,setDoc,getDoc,updateDoc,deleteDoc} from 'firebase/firestore';
+let env;
+const account={name:'Test',walletAddress:'0x1111111111111111111111111111111111111111',points:0,checkIns:[],streak:0,notes:'',emailRef:'',passwordEncrypted:''};
+const path='users/alice/projects/4d-labs/accounts/test';
+before(async()=>{env=await initializeTestEnvironment({projectId:'demo-project-vault',firestore:{rules:readFileSync('firestore.rules','utf8'),host:'127.0.0.1',port:8080}});});
+after(async()=>{await env.cleanup();});
+test('owner may create, read and update their account',async()=>{const db=env.authenticatedContext('alice').firestore();await assertSucceeds(setDoc(doc(db,path),account));await assertSucceeds(getDoc(doc(db,path)));await assertSucceeds(updateDoc(doc(db,path),{notes:'my notes'}));});
+test('another UID cannot read, overwrite or delete',async()=>{const db=env.authenticatedContext('bob').firestore();await assertFails(getDoc(doc(db,path)));await assertFails(setDoc(doc(db,path),account));await assertFails(deleteDoc(doc(db,path)));});
+test('unauthenticated reads and writes fail',async()=>{const db=env.unauthenticatedContext().firestore();await assertFails(getDoc(doc(db,path)));await assertFails(setDoc(doc(db,path),account));});
+test('plaintext secrets, malformed addresses and negative points rejected',async()=>{const db=env.authenticatedContext('alice').firestore();await assertFails(setDoc(doc(db,path),{...account,password:'secret'}));await assertFails(setDoc(doc(db,path),{...account,walletAddress:'bad'}));await assertFails(setDoc(doc(db,path),{...account,points:-1}));});
+test('client cannot write cache or change wallet identity',async()=>{const db=env.authenticatedContext('alice').firestore();await assertFails(setDoc(doc(db,'users/alice/pointsCache/wallet'),{points:999}));await assertFails(updateDoc(doc(db,path),{walletAddress:'0x2222222222222222222222222222222222222222'}));});

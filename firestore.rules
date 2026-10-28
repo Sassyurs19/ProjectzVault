@@ -1,0 +1,31 @@
+rules_version = '2';
+service cloud.firestore {
+ match /databases/{database}/documents {
+  function owner(uid) { return request.auth != null && request.auth.uid == uid; }
+  function validAccount() {
+   let a = request.resource.data;
+   return a.keys().hasAll(['name','walletAddress','points','checkIns','streak','notes','emailRef','passwordEncrypted'])
+    && a.keys().hasOnly(['name','walletAddress','points','checkIns','streak','notes','emailRef','passwordEncrypted','label','color','pointsSource','pointsUpdatedAt'])
+    && a.name is string && a.name.size() > 0 && a.name.size() <= 60
+    && a.walletAddress is string && a.walletAddress.matches('0x[0-9a-fA-F]{40}')
+    && a.points is number && a.points >= 0 && a.points <= 1000000000
+    && a.checkIns is list && a.checkIns.size() <= 10000
+    && a.streak is int && a.streak >= 0 && a.streak <= 10000
+    && a.notes is string && a.notes.size() <= 3000
+    && a.emailRef is string && a.emailRef.size() <= 320
+    && a.passwordEncrypted is string && a.passwordEncrypted.size() <= 16000
+    && (!('label' in a) || (a.label is string && a.label.size() <= 24))
+    && (!('color' in a) || a.color in ['orange','green','purple','blue'])
+    && (!('pointsSource' in a) || a.pointsSource in ['manual','live'])
+    && (!('pointsUpdatedAt' in a) || a.pointsUpdatedAt is number);
+  }
+  match /users/{uid}/projects/{projectId}/accounts/{accountId} {
+   allow read: if owner(uid);
+   allow create: if owner(uid) && projectId == '4d-labs' && validAccount();
+   allow update: if owner(uid) && projectId == '4d-labs' && validAccount() && request.resource.data.walletAddress == resource.data.walletAddress;
+   allow delete: if owner(uid);
+  }
+  // Cache is accessible only to the Admin SDK in the callable function.
+  match /{document=**} { allow read, write: if false; }
+ }
+}

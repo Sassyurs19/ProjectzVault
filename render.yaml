@@ -1,0 +1,16 @@
+services:
+  - type: web
+    name: project-vault-api
+    runtime: node
+    plan: free
+    rootDir: backend
+    buildCommand: npm ci
+    startCommand: npm start
+    healthCheckPath: /health
+    envVars:
+      - key: NODE_VERSION
+        value: 22
+      - key: ALLOWED_ORIGINS
+        value: https://projectzvault.web.app,https://projectzvault.firebaseapp.com
+      - key: BSCSCAN_API_KEY
+        sync: false

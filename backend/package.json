@@ -1,0 +1,8 @@
+{
+  "name": "project-vault-render-api",
+  "private": true,
+  "type": "module",
+  "scripts": {"start": "node server.js", "test": "node --test test/*.test.mjs"},
+  "engines": {"node": "22.x"},
+  "dependencies": {"cors": "^2.8.5", "express": "^5.1.0", "jose": "^6.1.0", "viem": "^2.38.0"}
+}
