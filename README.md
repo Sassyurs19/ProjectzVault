@@ -35,6 +35,8 @@ The service checks the signed Firebase ID token with Firebase's public signing k
 
 Sign up with an email, matching password/confirmation, and required terms checkbox. Log in later with that same email/password. Firebase keeps the session signed in; no verification email is required. Profile contains identity, password-reset email, and logout. Settings contains application preferences and backup export.
 
+Each new account uses a deterministic wallet-address document ID and a Firestore transaction, so the same wallet cannot be created twice if two tabs or phones attempt to add it simultaneously.
+
 Reference passwords use AES-256-GCM with a fresh 128-bit salt, a fresh 96-bit IV, and PBKDF2-SHA256 with 600,000 iterations. The session PIN stays in memory. Use a strong PIN; short numeric PINs have limited entropy. A forgotten PIN cannot be recovered. Exports exclude encrypted passwords and Privy tokens.
 
 ## Check-in safety
@@ -47,6 +49,7 @@ Reference passwords use AES-256-GCM with a fresh 128-bit salt, a fresh 96-bit IV
 - Signing occurs only through the wallet on a deliberate tap. No scheduled or automatic transactions.
 - A public pending transaction hash is stored locally per UID/account, so a confirmed transaction can be recovered without resending after a network/storage error.
 - Receipt must succeed and match the wallet, contract, calldata, and zero value. Save the UTC date derived from its block timestamp after two confirmations. Firestore transaction de-duplicates check-ins.
+- The interface locks the check-in button while a request is preparing or awaiting a wallet. A second browser or phone can still independently prompt a signature; the 4D Labs contract and its fresh pre-send simulation remain the final protection against a duplicate on-chain check-in.
 - Leaving an account disconnects the wallet. UTC reset is 5:30 AM IST.
 
 ## 4D Labs points and linked wallets

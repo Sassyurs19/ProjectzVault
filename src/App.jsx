@@ -1,6 +1,6 @@
 import React, {useEffect,useState,useRef} from 'react';
 import {onAuthStateChanged,signInWithEmailAndPassword,createUserWithEmailAndPassword,signOut,sendPasswordResetEmail} from 'firebase/auth';
-import {collection,onSnapshot,addDoc,doc,updateDoc,runTransaction} from 'firebase/firestore';
+import {collection,onSnapshot,doc,updateDoc,runTransaction} from 'firebase/firestore';
 import {useAccount,useConnect,useDisconnect,usePublicClient,useWalletClient,useBalance,useSwitchChain} from 'wagmi';
 import {getAccount} from 'wagmi/actions';
 import {encodeAbiParameters,formatEther,isAddress,parseAbi} from 'viem';
@@ -47,7 +47,7 @@ export default function App(){
  useEffect(()=>{loadContract();},[user]);
  const go=(next,id=null)=>{disconnect();setSelected(id);setPage(next);setError('');};
  const save=async(id,patch)=>{if(preview){setAccounts(a=>a.map(x=>x.id===id?{...x,...patch}:x));return;}await updateDoc(doc(db,accountPath(user.uid),id),patch);};
- const add=async data=>{if(accounts.some(a=>a.walletAddress.toLowerCase()===data.walletAddress.toLowerCase()))throw new Error('This wallet is already in your vault.');if(preview)setAccounts(a=>[...a,{...data,id:crypto.randomUUID()}]);else await addDoc(collection(db,accountPath(user.uid)),data);setToast('Account added to your vault');};
+ const add=async data=>{const id=data.walletAddress.toLowerCase();if(accounts.some(a=>a.walletAddress.toLowerCase()===id))throw new Error('This wallet is already in your vault.');if(preview)setAccounts(a=>[...a,{...data,id}]);else await runTransaction(db,async tx=>{const ref=doc(db,accountPath(user.uid),id);if((await tx.get(ref)).exists())throw new Error('This wallet is already in your vault.');tx.set(ref,data);});setToast('Account added to your vault');};
  const todayDone=accounts.filter(a=>a.checkIns.some(c=>c.date===utcDate(now))).length;
  const totalPoints=accounts.reduce((s,a)=>s+Number(a.points||0),0);
  const selectedAccount=accounts.find(a=>a.id===selected);
